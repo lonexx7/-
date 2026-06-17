@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>にゅゎ 育生げーむ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Cute Japanese & Retro Font Style -->
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=Kiwi+Maru:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'DotGothic16', 'Kiwi Maru', sans-serif;
+      background-color: #f7ebe1;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    .pixelated {
+      image-rendering: pixelated;
+    }
+    /* CRT Scanline & Noise for Horror moments */
+    .horror-glitch {
+      animation: glitch 0.15s infinite;
+    }
+    @keyframes glitch {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(0px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      50% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(2px, 1px) rotate(-2deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(2px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    /* Flash Overdose styles */
+    .flash-saturated {
+      filter: saturate(6) contrast(1.5) !important;
+    }
+    .flash-redblack {
+      background: #000000 !important;
+      border-color: #ff0000 !important;
+      filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(-50deg) saturate(1000%) contrast(200%) !important;
+    }
+    /* Simple custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c3b1e1;
+      border-radius: 3px;
+    }
+    /* Heart bounce effect */
+    @keyframes heart-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    .heart-active {
+      animation: heart-bounce 0.6s infinite;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+  <!-- Main Game Container -->
+  <div id="game-container" class="relative w-full max-w-md h-[620px] bg-[#fffaf5] border-8 border-[#d8b4f8] rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between transition-colors duration-500">
+    
+    <!-- Whiteout Overlay for Smooth/Surprise Transitions -->
+    <div id="whiteout-overlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50 transition-opacity duration-1000"></div>
+
+    <!-- HEADER (Stats & Controls in Game) -->
+    <div id="game-header" class="hidden absolute top-0 left-0 w-full p-3 flex justify-between items-center z-10 bg-[#fff3fa] border-b-2 border-[#f3d5f9] text-xs">
+      <div class="flex flex-col">
+        <div class="flex items-center gap-1 font-bold text-gray-700 bg-gray-200/40 px-2 py-0.5 rounded-lg border border-gray-300/30">
+          <span>じゅみょう:</span>
+          <!-- Timer text is white with dark background for subtle but clear visual tracking -->
+          <span id="header-timer" class="text-white bg-gray-500 px-2 py-0.5 rounded-md font-mono font-bold text-[11px] shadow-sm transition-colors duration-300">02:00</span>
+        </div>
+        <div class="text-[10px] text-gray-500 flex items-center gap-1 mt-1 pl-1">
+          <span>すいぶん:</span>
+          <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
+            <div id="water-bar" class="h-full bg-blue-400 transition-all duration-300" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Home Button -->
+      <button onclick="confirmGoHome()" class="w-10 h-10 bg-white hover:bg-rose-50 border-2 border-[#d8b4f8] rounded-xl flex items-center justify-center shadow-sm transition-all active:scale-95">
+        <span class="text-xl">🏠</span>
+      </button>
+    </div>
+
+    <!-- MAIN INTERACTIVE DISPLAY AREA -->
+    <div id="screen-viewport" class="relative w-full h-full flex flex-col items-center justify-center p-4">
+      
+      <!-- --- TITLE SCREEN --- -->
+      <div id="screen-title" class="w-full h-full flex flex-col items-center justify-between py-8">
+        <div class="text-center mt-6">
+          <div class="text-[10px] text-[#c0a0e0] font-bold tracking-widest mb-1">~ふしぎないきもの~</div>
+          <h1 class="text-4xl font-extrabold text-[#9d5cd1] drop-shadow-sm tracking-normal">にゅゎ</h1>
+          <p class="text-xs text-gray-400 mt-2">のんびり、どきどき 育生げーむ</p>
+        </div>
+
+        <!-- Title Pixel Mascot Canvas -->
+        <div class="w-32 h-32 flex items-center justify-center">
+          <canvas id="title-mascot-canvas" width="120" height="120" class="pixelated"></canvas>
+        </div>
+
+        <div class="flex flex-col gap-2 w-4/5">
+          <button onclick="startIntro()" class="w-full py-2.5 bg-[#ffc6ff] hover:bg-[#ffb0ff] text-white border-b-4 border-[#e0a0e0] rounded-xl font-bold active:translate-y-[2px] active:border-b-2 transition-all text-sm">
+            はじめから
+          </button>
+          <button id="btn-continue" onclick="loadGame()" class="w-full py-2.5 bg-[#bdb2ff] hover:bg-[#aba0ff] text-white border-b-4 border-[#a395e8] rounded-xl font-bold active:translate-y-[2px] active:border-b-2 transition-all text-sm disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+            つづきから
+          </button>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button onclick="openGraveyard()" class="py-2 bg-[#9bf6ff] hover:bg-[#80e5f0] text-gray-700 border-b-4 border-[#85dddf] rounded-xl font-bold active:translate-y-[1px] active:border-b-2 text-xs">
+              🪦 おはか
+            </button>
+            <button onclick="openShop()" class="py-2 bg-[#caffbf] hover:bg-[#b0f0a0] text-gray-700 border-b-4 border-[#addb9c] rounded-xl font-bold active:translate-y-[1px] active:border-b-2 text-xs">
+              🏪 おみせ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- INTRO & DESCRIPTION SCREEN --- -->
+      <div id="screen-intro" class="hidden w-full h-full flex flex-col items-center justify-between py-6 px-4">
+        <div class="w-full text-right text-[10px] text-gray-400">説明をタップして進んでね</div>
+        
+        <div class="flex-1 flex flex-col items-center justify-center w-full px-2">
+          <!-- Egg drawing on canvas for intro -->
+          <div class="w-36 h-36 flex items-center justify-center relative mb-4">
+            <canvas id="intro-egg-canvas" width="140" height="140" class="pixelated"></canvas>
+            <div id="intro-crack-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
+          </div>
+          
+          <!-- Dialogue Box -->
+          <div onclick="nextIntroStep()" class="w-full min-h-[110px] bg-white border-4 border-[#ffd6e8] rounded-2xl p-4 cursor-pointer hover:bg-rose-50/50 active:scale-98 transition-all shadow-sm flex flex-col justify-between">
+            <p id="intro-text" class="text-xs text-gray-700 leading-relaxed font-semibold">
+              たまごをみつけた。ふしぎなたまごだ…。
+            </p>
+            <span class="text-right text-[10px] text-[#ff7ebd] font-bold animate-pulse">▼ つぎへ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- GAME PLAY SCREEN --- -->
+      <div id="screen-play" class="hidden w-full h-full flex flex-col justify-between pt-14 pb-4">
+        
+        <!-- Environment Layer (Background/Decorations) -->
+        <div id="play-environment-bg" class="relative flex-1 w-full bg-gradient-to-b from-[#fffbf8] to-[#fff3fa] rounded-2xl border-4 border-[#ffedf6] shadow-inner overflow-hidden flex flex-col items-center justify-end pb-4">
+          
+          <!-- Placed Furniture Display Layer -->
+          <div id="room-decor-layer" class="absolute inset-0 pointer-events-none z-0">
+            <!-- Furniture SVG/Elements injected dynamically -->
+          </div>
+
+          <!-- Disease indicator -->
+          <div id="disease-badge" class="hidden absolute top-3 left-3 bg-[#e8a2a2] text-white border border-[#c97474] text-[9px] px-2 py-0.5 rounded-full z-10 animate-bounce">
+            🤒 びょうき (<span id="disease-countdown">15</span>)
+          </div>
+
+          <!-- Visual interactive feedback overlay (hearts, exclamation marks) -->
+          <div id="feedback-bubble" class="absolute top-10 text-center font-bold text-xs bg-white/80 border-2 border-pink-200 px-3 py-1.5 rounded-full shadow-sm max-w-[80%] opacity-0 transition-opacity duration-300 pointer-events-none z-10">
+            <!-- Dynamic simple feedback messages -->
+          </div>
+
+          <!-- Main Mascot Interactive Canvas -->
+          <div id="mascot-hitbox" class="relative w-44 h-44 cursor-pointer flex items-center justify-center z-10">
+            <canvas id="play-mascot-canvas" width="160" height="160" class="pixelated transition-transform active:scale-95"></canvas>
+          </div>
+
+          <!-- Character Bubble / Reaction (Floating above) -->
+          <div id="floating-reaction" class="absolute text-2xl select-none pointer-events-none transition-all duration-500 opacity-0 scale-50 z-20" style="bottom: 120px;">
+            ❤️
+          </div>
+        </div>
+
+        <!-- PLAY ACTION CONTROLS / MENU -->
+        <div class="mt-3 w-full bg-white border-4 border-[#ffd6e8] rounded-2xl p-2.5 z-10">
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="menuAction('status')" class="py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 text-xs font-semibold rounded-xl border border-pink-200 flex flex-col items-center gap-1">
+              <span>🔍</span>
+              <span>ようすをみる</span>
+            </button>
+            <button onclick="menuAction('touch')" class="py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 text-xs font-semibold rounded-xl border border-pink-200 flex flex-col items-center gap-1">
+              <span>👉</span>
+              <span>さわる</span>
+            </button>
+            <button onclick="menuAction('food')" class="py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 text-xs font-semibold rounded-xl border border-pink-200 flex flex-col items-center gap-1">
+              <span>😋</span>
+              <span>ごはん</span>
+            </button>
+            <button onclick="menuAction('decor')" class="py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 text-xs font-semibold rounded-xl border border-pink-200 flex flex-col items-center gap-1">
+              <span>🧸</span>
+              <span>もようがえ</span>
+            </button>
+            <button onclick="menuAction('items')" class="py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 text-xs font-semibold rounded-xl border border-pink-200 flex flex-col items-center gap-1">
+              <span>🎒</span>
+              <span>あいてむ</span>
+            </button>
+            <button onclick="menuAction('kill')" class="py-2 bg-[#ffebee] hover:bg-[#ffcdd2] text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 flex flex-col items-center gap-1">
+              <span>💀</span>
+              <span>ころす</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- DEATH SCREEN (HORROR & NORMAL) --- -->
+      <div id="screen-death" class="hidden w-full h-full flex flex-col items-center justify-between py-8 px-6 bg-black text-white">
+        <div class="w-full flex justify-between text-[11px] text-gray-400">
+          <div class="flex items-center gap-1">🪙 <span id="death-purse-coins">0</span></div>
+          <div class="flex items-center gap-1">💖 <span id="death-purse-hearts">0</span></div>
+        </div>
+
+        <div class="text-center w-full my-4">
+          <!-- Death state custom illustration (White outline/Horror) -->
+          <div class="w-36 h-36 mx-auto flex items-center justify-center relative">
+            <canvas id="death-mascot-canvas" width="140" height="140" class="pixelated"></canvas>
+          </div>
+          <h2 id="death-announcement" class="text-xl font-bold mt-2 font-mono">しんでしまいました</h2>
+          <p id="death-detail" class="text-xs text-gray-400 mt-1">寿命をむかえました</p>
+        </div>
+
+        <!-- Custom death dialogue area -->
+        <div class="w-full p-4 border border-gray-700 rounded-xl bg-neutral-900 text-xs leading-relaxed max-h-[140px] overflow-y-auto">
+          <p id="death-narration" class="text-neutral-300 font-semibold text-center"></p>
+        </div>
+
+        <div id="death-reward-zone" class="w-full p-2 text-center text-xs text-[#ffd166] font-bold border border-dashed border-yellow-700 rounded-xl hidden">
+          <!-- Dynamically computed currency rewards if standard demise -->
+        </div>
+
+        <button onclick="goBackToTitle()" class="w-full py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-600 rounded-xl font-bold active:scale-98 transition-all text-sm font-mono text-gray-300">
+          タイトルにもどる
+        </button>
+      </div>
+
+      <!-- --- THE GRAVEYARD (おはか) --- -->
+      <div id="screen-graveyard" class="hidden w-full h-full flex flex-col justify-between py-6 px-4">
+        <div class="flex justify-between items-center w-full mb-3">
+          <h2 class="text-lg font-bold text-gray-700">🪦 おはかのきろく</h2>
+          <button onclick="goBackToTitle()" class="px-3 py-1 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-semibold">もどる</button>
+        </div>
+
+        <!-- Grave slots container (max 10) -->
+        <div id="grave-slots" class="flex-1 w-full overflow-y-auto space-y-2 pr-1 mb-4">
+          <!-- Populated dynamically -->
+        </div>
+
+        <p class="text-[10px] text-gray-400 text-center">🌟お気に入りにすると消えなくなります。10匹をこえると古いものからきえます。</p>
+      </div>
+
+      <!-- --- THE SHOP (おみせ) --- -->
+      <div id="screen-shop" class="hidden w-full h-full flex flex-col justify-between py-6 px-4">
+        <div class="flex justify-between items-center w-full mb-3">
+          <h2 class="text-lg font-bold text-gray-700">🏪 パステルおみせ</h2>
+          <button onclick="goBackToTitle()" class="px-3 py-1 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-semibold">もどる</button>
+        </div>
+
+        <!-- Display Purse -->
+        <div class="flex justify-end gap-3 w-full text-xs font-bold text-gray-600 mb-2">
+          <div class="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-200">🪙 <span id="shop-coins">0</span></div>
+          <div class="flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">💖 <span id="shop-hearts">0</span></div>
+        </div>
+
+        <!-- Shop tabs -->
+        <div class="flex w-full border-b border-gray-200 mb-3 text-xs font-bold">
+          <button id="tab-shop-consumable" onclick="switchShopTab('consumable')" class="flex-1 py-1.5 text-center border-b-2 border-indigo-500 text-indigo-600">
+            おせわ/くすり (💖)
+          </button>
+          <button id="tab-shop-decor" onclick="switchShopTab('decor')" class="flex-1 py-1.5 text-center border-b-2 border-transparent text-gray-400">
+            もようがえ (🪙)
+          </button>
+        </div>
+
+        <!-- Shop items display area -->
+        <div id="shop-items" class="flex-1 w-full overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SUB-MODAL WINDOWS FOR USER INTERACTIONS -->
+    <!-- Name Input Overlay (Always visible over background while setting up) -->
+    <div id="modal-naming" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 z-30">
+      <div class="bg-white rounded-3xl border-4 border-[#d8b4f8] w-full max-w-[280px] p-5 shadow-2xl flex flex-col gap-4 text-center">
+        <div class="space-y-1">
+          <h3 class="text-sm font-bold text-gray-700">🎉 うまれた！</h3>
+          <p class="text-[10px] text-gray-400">この子のなまえを おしえてね</p>
+        </div>
+        
+        <input type="text" id="nyuwa-name-input" maxlength="8" placeholder="にゅゎの名前" 
+          class="w-full px-3 py-2 border-2 border-[#d8b4f8] rounded-xl text-center text-xs focus:outline-none focus:border-[#c58cf2] font-bold text-gray-700 bg-white">
+          
+        <button onclick="confirmNaming()" class="w-full py-2 bg-[#ffd6e8] hover:bg-[#ffb6d5] text-gray-700 font-bold rounded-xl border-b-4 border-[#efa8c9] active:translate-y-[2px] active:border-b-0 text-xs">
+          けってい！
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Check View (🔍) -->
+    <div id="modal-status" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div class="bg-white rounded-3xl border-4 border-[#ffd6e8] w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3">
+        <div class="text-center font-bold text-gray-700 border-b pb-2">🔍 にゅゎのようす</div>
+        <p id="status-message" class="text-xs text-gray-600 leading-relaxed min-h-[50px] flex items-center justify-center text-center">
+          <!-- Status text goes here -->
+        </p>
+        <button onclick="closeModal('modal-status')" class="w-full py-2 bg-[#ffedf6] hover:bg-[#ffd9eb] text-gray-700 font-bold rounded-xl border border-pink-200 text-xs">
+          とじる
+        </button>
+      </div>
+    </div>
+
+    <!-- Food Selection View (😋) -->
+    <div id="modal-food" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div class="bg-white rounded-3xl border-4 border-[#ffd6e8] w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3">
+        <div class="text-center font-bold text-gray-700 border-b pb-2">😋 ごはんを あげる</div>
+        <div class="grid grid-cols-3 gap-2 py-2">
+          <button onclick="feedMascot('sweet')" class="py-3 bg-pink-50 hover:bg-pink-100 border border-pink-200 rounded-xl flex flex-col items-center gap-1">
+            <span class="text-2xl">🍬</span>
+            <span class="text-[10px] font-bold text-gray-600">あまい</span>
+          </button>
+          <button onclick="feedMascot('salty')" class="py-3 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-xl flex flex-col items-center gap-1">
+            <span class="text-2xl">🍘</span>
+            <span class="text-[10px] font-bold text-gray-600">しょっぱい</span>
+          </button>
+          <button onclick="feedMascot('water')" class="py-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl flex flex-col items-center gap-1">
+            <span class="text-2xl">💧</span>
+            <span class="text-[10px] font-bold text-gray-600">おみず</span>
+          </button>
+        </div>
+        <button onclick="closeModal('modal-food')" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs">
+          やめる
+        </button>
+      </div>
+    </div>
+
+    <!-- Decor/Furniture Selection View (🧸) -->
+    <div id="modal-decor" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div class="bg-white rounded-3xl border-4 border-[#ffd6e8] w-full max-w-[300px] p-5 shadow-xl flex flex-col gap-3">
+        <div class="text-center font-bold text-gray-700 border-b pb-2">🧸 もようがえ</div>
+        <div id="decor-inventory" class="grid grid-cols-3 gap-2 py-2 max-h-[160px] overflow-y-auto">
+          <!-- Dynamically populated from saved inventory -->
+        </div>
+        <button onclick="closeModal('modal-decor')" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs">
+          とじる
+        </button>
+      </div>
+    </div>
+
+    <!-- Items Inventory (🎒) -->
+    <div id="modal-items" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div class="bg-white rounded-3xl border-4 border-[#ffd6e8] w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3">
+        <div class="text-center font-bold text-gray-700 border-b pb-2">🎒 もっている アイテム</div>
+        <div id="consumables-inventory" class="flex flex-col gap-2 max-h-[160px] overflow-y-auto">
+          <!-- Loaded dynamically -->
+        </div>
+        <button onclick="closeModal('modal-items')" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs">
+          とじる
+        </button>
+      </div>
+    </div>
+
+    <!-- System Confirm Modal (Yes/No prompts) -->
+    <div id="modal-confirm" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-40">
+      <div id="confirm-box" class="bg-white rounded-3xl border-4 border-gray-200 w-full max-w-[280px] p-5 shadow-2xl flex flex-col gap-4 text-center">
+        <div id="confirm-icon" class="text-3xl">⚠️</div>
+        <p id="confirm-message" class="text-xs text-gray-700 leading-relaxed font-bold">
+          ホームへ戻りますか？<br>じどうセーブされます。
+        </p>
+        <div class="flex gap-2">
+          <button id="confirm-yes-btn" class="flex-1 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-bold text-xs">はい</button>
+          <button id="confirm-no-btn" onclick="closeModal('modal-confirm')" class="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-bold text-xs">いいえ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grave Details Viewer Modal -->
+    <div id="modal-grave-details" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div id="grave-modal-card" class="bg-white rounded-3xl border-4 border-gray-300 w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3 text-center transition-colors duration-500">
+        <div id="grave-det-header" class="text-sm font-bold text-gray-600 border-b pb-2">おはかのステータス</div>
+        
+        <div class="w-24 h-24 mx-auto flex items-center justify-center relative">
+          <canvas id="grave-det-canvas" width="100" height="100" class="pixelated"></canvas>
+          <div id="grave-horror-splatter" class="hidden absolute inset-0 bg-red-600/20 mix-blend-multiply pointer-events-none rounded-xl"></div>
+        </div>
+
+        <div class="text-left text-xs text-gray-600 space-y-1 bg-gray-50 p-2.5 rounded-xl border border-gray-200" id="grave-det-info">
+          <!-- Text dynamically loaded -->
+        </div>
+
+        <button onclick="closeModal('modal-grave-details')" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs">
+          そっと とじる
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sound effect generator using Web Audio API (so no external files are required) -->
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playBeep(freq = 440, type = 'sine', duration = 0.1, vol = 0.05) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Audio API blocked/failed silently
+      }
+    }
+
+    function playCureSfx() {
+      playBeep(440, 'sine', 0.1, 0.04);
+      setTimeout(() => playBeep(660, 'sine', 0.1, 0.04), 80);
+      setTimeout(() => playBeep(880, 'sine', 0.2, 0.04), 160);
+    }
+
+    function playDeathSfx(horror = false) {
+      if (horror) {
+        playBeep(120, 'sawtooth', 0.4, 0.15);
+        setTimeout(() => playBeep(80, 'sawtooth', 0.6, 0.2), 300);
+      } else {
+        playBeep(400, 'sine', 0.3, 0.08);
+        setTimeout(() => playBeep(300, 'sine', 0.3, 0.08), 250);
+        setTimeout(() => playBeep(200, 'sine', 0.5, 0.08), 500);
+      }
+    }
+
+    function playGlitchSfx() {
+      playBeep(60, 'square', 0.1, 0.2);
+      setTimeout(() => playBeep(180, 'sawtooth', 0.15, 0.15), 100);
+    }
+  </script>
+
+  <!-- Main Game Javascript Engine -->
+  <script>
+    // --- STATE MANAGEMENT ---
+    let state = {
+      coins: 0,
+      hearts: 0,
+      currentNyuwa: null, // Holds object of current pet if alive
+      graveyard: [], // List of historical Nyuwas
+      inventory: {
+        // Items & Furniture quantities
+        candy5: 0, // ★ FIXED: 5 min expander starts at 0 now! No starting candies.
+        candy10: 0, 
+        candy30: 0, 
+        medicine: 10, // Sick pill - Started with 10 from the beginning!
+        loveItem: 0, // Love boosts
+        
+        // Furnitures: key to true/false if purchased
+        carpet_pink: false,
+        star_lamp: false,
+        mystic_orb: false,
+        creepy_doll: false
+      },
+      currentDecor: null // The active furniture key placed in the room
+    };
+
+    const APP_STORAGE_KEY = 'nyuwa_tamagotchi_save';
+
+    // Track if a horror event was triggered *during this graveyard visit*
+    let graveyardHorrorTriggeredThisVisit = false;
+
+    // --- NYUWA GENETICS / CHARACTER CONSTANTS ---
+    const GENES_MUTATION = {
+      heads: ['normal', 'cat_ears', 'horns', 'sprout'],
+      bodies: ['slime', 'chubby', 'flowerpot', 'egg_bottom'],
+      faces: ['kawaii', 'blank', 'derp', 'cool']
+    };
+
+    // Color definitions (Expanded with more beautiful water/pastel shades)
+    const PASTEL_COLORS = {
+      // Warm tones (high food requirement, easy stress, easy sickness)
+      warm1: '#ffadad', // Pastel Red
+      warm2: '#ffd6a5', // Soft Orange
+      warm3: '#fdffb6', // Pastel Yellow
+      warm4: '#ffd1dc', // Baby Pink
+      warm5: '#ffe5ec', // Soft Blush
+      // Cool tones (low eat, play can trigger stress, resilient to sickness)
+      cool1: '#caffbf', // Soft Green
+      cool2: '#9bf6ff', // Sky Turquoise (Water-like!)
+      cool3: '#a0c4ff', // Light Sky Blue
+      cool4: '#bdb2ff', // Light Lavender
+      cool5: '#e2f0cb', // Soft Lime
+      cool6: '#d8f3dc', // Pale Mint
+      cool7: '#b3e5fc'  // Pastel Aqua
+    };
+
+    // Game Core Interval
+    let gameTicker = null;
+
+    // Load saved game from Local Storage
+    function loadSavedState() {
+      const data = localStorage.getItem(APP_STORAGE_KEY);
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          state = { ...state, ...parsed };
+          document.getElementById('btn-continue').removeAttribute('disabled');
+        } catch (e) {
+          console.error("Error loading save data.", e);
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(state));
+      // Re-enable continue button if state exists
+      if (state.currentNyuwa) {
+        document.getElementById('btn-continue').removeAttribute('disabled');
+      } else {
+        document.getElementById('btn-continue').setAttribute('disabled', 'true');
+      }
+    }
+
+    // --- INTRO STEP CONTROLLER ---
+    let introStep = 0;
+    const introDialogue = [
+      { text: "たまごをみつけた。ふしぎなたまごだ…。", isWarning: false },
+      { text: "にゅゎは とっても せんさいな いきもの。", isWarning: false },
+      { text: "あなたの ちょっとしたことで しんでしまうかもしれません…。", isWarning: true },
+      { text: "たいせつに あいじょうを こめて そだてましょう。", isWarning: false },
+      { text: "お、たまごが うごきだした！\nそろそろうまれるよ…！", isWarning: false }
+    ];
+
+    function startIntro() {
+      introStep = 0;
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('screen-intro').classList.remove('hidden');
+      updateIntroDialogue();
+      drawIntroEgg(0); // Shake style
+    }
+
+    function drawIntroEgg(shake = 0) {
+      const canvas = document.getElementById('intro-egg-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.save();
+      if (shake > 0) {
+        ctx.translate(Math.sin(Date.now() * 0.05) * shake, 0);
+      }
+      
+      // Draw Egg Shadow
+      ctx.fillStyle = 'rgba(216, 180, 248, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(70, 110, 35, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Pastel Egg
+      ctx.fillStyle = '#ffedf6';
+      ctx.strokeStyle = '#ffd6e8';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(70, 75, 32, 42, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Egg Spots
+      ctx.fillStyle = '#caffbf';
+      ctx.beginPath(); ctx.arc(55, 60, 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffc6ff';
+      ctx.beginPath(); ctx.arc(85, 80, 8, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#9bf6ff';
+      ctx.beginPath(); ctx.arc(75, 50, 5, 0, Math.PI*2); ctx.fill();
+      
+      ctx.restore();
+    }
+
+    let eggShakerInterval = null;
+
+    function nextIntroStep() {
+      introStep++;
+      playBeep(400, 'sine', 0.05, 0.05);
+
+      if (introStep < introDialogue.length) {
+        updateIntroDialogue();
+        if (introStep === 4) {
+          // Egg starts shaking heavily
+          eggShakerInterval = setInterval(() => drawIntroEgg(4), 50);
+        } else {
+          if (eggShakerInterval) {
+            clearInterval(eggShakerInterval);
+            eggShakerInterval = null;
+          }
+          drawIntroEgg(0);
+        }
+      } else {
+        // Egg hatching complete
+        if (eggShakerInterval) clearInterval(eggShakerInterval);
+        hatchNyuwa();
+      }
+    }
+
+    function updateIntroDialogue() {
+      const dialogue = introDialogue[introStep];
+      const textBox = document.getElementById('intro-text');
+      
+      textBox.innerText = dialogue.text;
+      
+      // No more scary glitch screen/shakes at the beginning of the game! Keep it cute and simple.
+      if (dialogue.isWarning) {
+        // Just cleanly turn text red to signify warning
+        textBox.className = "text-xs text-red-500 font-semibold leading-relaxed";
+      } else {
+        textBox.className = "text-xs text-gray-700 font-semibold leading-relaxed";
+      }
+    }
+
+    // --- NYUWA HATCH GENERATOR ---
+    function hatchNyuwa() {
+      // Pick random genes
+      const head = GENES_MUTATION.heads[Math.floor(Math.random() * GENES_MUTATION.heads.length)];
+      const body = GENES_MUTATION.bodies[Math.floor(Math.random() * GENES_MUTATION.bodies.length)];
+      const face = GENES_MUTATION.faces[Math.floor(Math.random() * GENES_MUTATION.faces.length)];
+      
+      // Select random color
+      const colorKeys = Object.keys(PASTEL_COLORS);
+      const chosenColorKey = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+      const color = PASTEL_COLORS[chosenColorKey];
+      
+      // Determine personality based on warm vs cool colors
+      const isWarm = chosenColorKey.startsWith('warm');
+      const personality = isWarm ? 'warm' : 'cool';
+
+      // Instantiate fresh Nyuwa state (Exactly 2 minutes / 120 seconds lifetime)
+      state.currentNyuwa = {
+        name: 'にゅゎ',
+        headGene: head,
+        bodyGene: body,
+        faceGene: face,
+        color: color,
+        personality: personality, // 'warm' or 'cool'
+        
+        // Timers & Lifespans (Strictly 120 seconds, decreases by 1 integer)
+        lifetimeSec: 120, 
+        timeSurvivedSec: 0,
+        
+        // Critical vitals (0 to 100 scale)
+        hunger: 40,      // 0 is full, 100 is starving to death
+        water: 100,      // 100 is hydrated, 0 is dehydrated to death
+        stress: 10,      // 0 is happy, 100 is ultimate high-stress (leads to death/damage)
+        isSick: false,
+        sickTimer: 15,   // Urgent 15-second survival timer when sick
+        canGetSick: true, // Recurrence flag. Can be false (50% chance upon successful cure)
+        
+        touchHistory: [], // Array of timestamps tracking physical interaction to detect over-touching
+        
+        // --- OVERDOSE STATE VARIABLES ---
+        medicineTimestamps: [], // Logs when medicine was taken to analyze overdose (3 within 30s)
+        medicineAttempts: 0,    // Counts treatment attempts for current sickness episode
+        isDizzy: false,         // True if in glitched overdose state
+        dizzyStartTime: 0,      // Timestamp of when overdose started
+        glitchFlashFrames: 0,   // Number of frames the temporary screen bug lasts
+        glitchFlashType: 'none',// Current active temporary flash style
+        
+        deathReason: null, // Record of how it passed away
+        horrorDeath: false, // Flag to identify negligence/kill
+        hasExtenderActive: false
+      };
+
+      // Load decorative layout so it renders nicely in the background
+      loadDecorLayer();
+
+      // Show play environment instantly in background
+      document.getElementById('screen-intro').classList.add('hidden');
+      document.getElementById('screen-play').classList.remove('hidden');
+      document.getElementById('game-header').classList.remove('hidden');
+      
+      // Open the naming window as an overlay over the visible growing environment!
+      openModal('modal-naming');
+      document.getElementById('nyuwa-name-input').value = '';
+
+      // Start core loops running so the player can watch the real-time countdown and pet movement immediately!
+      startLifeTicker();
+      startPlayRenderLoop();
+    }
+
+    // --- GLITCH TEXT GENERATOR (文字化け) ---
+    function getGlitchText() {
+      const glitchChars = [
+        '縺', 'ゑ', 'ｽ', '｢', '縺', '縺', '', '', '縺', 'ｯ', '霓', '', '繧', '｢', '繧', 'ｹ', '縺', '輔', '縺', 'ｾ', '縺', 'ｯ', '豁', 'ｻ', '√', '・', '・'
+      ];
+      let glitched = "";
+      const len = 15 + Math.floor(Math.random() * 15);
+      for(let i=0; i<len; i++) {
+        glitched += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+      }
+      return glitched;
+    }
+
+    // --- GAME ENGINE CYCLE & TICKERS ---
+    function startLifeTicker() {
+      if (gameTicker) clearInterval(gameTicker);
+      gameTicker = setInterval(() => {
+        if (!state.currentNyuwa) return;
+
+        const p = state.currentNyuwa;
+        
+        // Tick time alive & clean decrement
+        p.timeSurvivedSec++;
+        p.lifetimeSec--;
+
+        // If dizzy, we skip normal updates and only run dizzy countdown in silence (10 seconds)
+        if (p.isDizzy) {
+          updateGameHeaderHUD();
+          return;
+        }
+
+        // Fluid and constant vital decreases (Integer updates)
+        // 1. Water depletes consistently
+        p.water -= 2; 
+        if (p.water < 0) p.water = 0;
+
+        // 2. Hunger goes up (needs food)
+        p.hunger += 1;
+        if (p.hunger > 100) p.hunger = 100;
+
+        // 3. Stress and disease probability
+        if (p.personality === 'warm') {
+          // Warm types: Get hungry faster
+          p.hunger += 1; 
+          if (p.hunger > 50 || p.water < 50) {
+            p.stress += 2; // Increased stress accumulation rate
+          }
+          // Warm sickness trigger rate - Only if currently capable of getting sick
+          if (Math.random() < 0.02 && !p.isSick && p.canGetSick) {
+            p.isSick = true;
+            p.sickTimer = 15; // Set urgent countdown
+            p.medicineAttempts = 0; // Reset cure attempts for this episode
+          }
+        } else {
+          // Cool types
+          if (p.water < 40) {
+            p.stress += 2; // Increased stress accumulation rate
+          }
+          // Less prone to sickness - Only if currently capable of getting sick
+          if (Math.random() < 0.005 && !p.isSick && p.canGetSick) {
+            p.isSick = true;
+            p.sickTimer = 15; // Set urgent countdown
+            p.medicineAttempts = 0; // Reset cure attempts for this episode
+          }
+        }
+
+        // Clean out ancient touch timestamps (older than 10 seconds) to reset click count over time
+        const now = Date.now();
+        p.touchHistory = p.touchHistory.filter(t => now - t < 10000);
+
+        // Sick countdown logic (15 seconds warning!)
+        if (p.isSick) {
+          p.sickTimer--;
+          // Show remaining seconds in badge
+          document.getElementById('disease-countdown').innerText = p.sickTimer;
+          
+          if (p.sickTimer <= 0) {
+            // Sick death is a normal, non-horror demise
+            triggerDeath("びょうきがなおらなかった", false); 
+            return;
+          }
+        }
+
+        if (p.stress > 100) p.stress = 100;
+        if (p.stress < 0) p.stress = 0;
+
+        // Update core HUD UI
+        updateGameHeaderHUD();
+
+        // CHECK DEATH CONDITIONS
+        checkImmediateDeathConditions();
+
+        // Autocall save periodically
+        if (p.timeSurvivedSec % 10 === 0) {
+          saveState();
+        }
+      }, 1000);
+    }
+
+    function checkImmediateDeathConditions() {
+      const p = state.currentNyuwa;
+      if (!p || p.isDizzy) return; // Dizzy status bypasses all normal deaths!
+
+      // Death by dehydration (Water = 0)
+      if (p.water <= 0) {
+        triggerDeath("水分不足による干からび", true); // Negligence = Horror
+        return;
+      }
+      
+      // Death by starvation (Hunger = 100)
+      if (p.hunger >= 100) {
+        triggerDeath("飢え死に", true); // Negligence = Horror
+        return;
+      }
+
+      // Death by stress stroke / overtouching / harassment (Stress = 100)
+      if (p.stress >= 100) {
+        if (p.touchHistory.length >= 4) {
+          triggerDeath("過干渉によるストレス死", true); // Harassment = Horror
+        } else {
+          triggerDeath("過度のストレス", true); // General Stress = Horror
+        }
+        return;
+      }
+
+      // Death by Natural Lifespan (Lifetime = 0)
+      if (p.lifetimeSec <= 0) {
+        triggerDeath("天寿を全うしました", false); // Love/Normal demise
+        return;
+      }
+    }
+
+    // --- NAMING CONFIRMATION ---
+    function confirmNaming() {
+      const input = document.getElementById('nyuwa-name-input');
+      let name = input.value.trim();
+      if (!name) {
+        name = 'にゅゎ';
+      }
+      state.currentNyuwa.name = name;
+      playBeep(600, 'sine', 0.15, 0.05);
+
+      // Hide the translucent overlay
+      closeModal('modal-naming');
+      
+      saveState();
+    }
+
+    // --- RENDER PET GRAPHICS (HTML5 Canvas Pixel-Art Generator) ---
+    function drawNyuwaOnCanvas(canvasId, nyuwa, frameCount = 0, horrorOverride = false) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 10;
+      
+      // Bounce offsets based on current mood/sickness
+      let bounce = Math.sin(frameCount * 0.15) * 3;
+      let rot = 0; // Rotation angle
+
+      if (nyuwa.isSick) {
+        bounce = Math.sin(frameCount * 0.05) * 1; // Shivering/Weak
+      } else if (nyuwa.stress > 60) {
+        bounce = Math.sin(frameCount * 0.3) * 1.5; // Anxious vibration
+      }
+
+      // OVERDOSE DIZZY RENDER UPDATE
+      if (nyuwa.isDizzy) {
+        bounce = Math.sin(frameCount * 0.4) * 5; // Intense dizzy shake
+        rot = Math.sin(frameCount * 0.2) * 0.15; // Spinning/skewing rotation
+      }
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.translate(-cx, -cy);
+      ctx.translate(0, bounce);
+
+      // 1. Draw Pet Shadow
+      ctx.fillStyle = 'rgba(216, 180, 248, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 24, 28, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Color profile - Fluffy white outline & selected body color
+      ctx.fillStyle = horrorOverride ? '#ff0000' : nyuwa.color;
+      ctx.strokeStyle = horrorOverride ? '#000000' : 'rgba(255, 255, 255, 0.95)'; 
+      ctx.lineWidth = 4; 
+
+      // 2. Draw Body base
+      ctx.beginPath();
+      if (nyuwa.bodyGene === 'slime') {
+        ctx.moveTo(cx - 24, cy + 20);
+        ctx.bezierCurveTo(cx - 30, cy, cx - 20, cy - 20, cx, cy - 20);
+        ctx.bezierCurveTo(cx + 20, cy - 20, cx + 30, cy, cx + 24, cy + 20);
+        ctx.closePath();
+      } else if (nyuwa.bodyGene === 'chubby') {
+        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+      } else if (nyuwa.bodyGene === 'flowerpot') {
+        ctx.moveTo(cx - 18, cy - 10);
+        ctx.lineTo(cx + 18, cy - 10);
+        ctx.lineTo(cx + 22, cy + 22);
+        ctx.lineTo(cx - 22, cy + 22);
+        ctx.closePath();
+      } else { // egg_bottom
+        ctx.ellipse(cx, cy + 4, 24, 28, 0, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // 3. Draw Head Addons (Genes) with soft outlines
+      ctx.fillStyle = horrorOverride ? '#ff0000' : nyuwa.color;
+      if (nyuwa.headGene === 'cat_ears') {
+        // Left ear
+        ctx.beginPath();
+        ctx.moveTo(cx - 18, cy - 14);
+        ctx.lineTo(cx - 24, cy - 32);
+        ctx.lineTo(cx - 6, cy - 22);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        // Inner Left Ear
+        ctx.fillStyle = horrorOverride ? '#000000' : '#ffb6d5';
+        ctx.beginPath();
+        ctx.moveTo(cx - 17, cy - 16);
+        ctx.lineTo(cx - 21, cy - 27);
+        ctx.lineTo(cx - 9, cy - 21);
+        ctx.closePath(); ctx.fill();
+        
+        // Right ear
+        ctx.fillStyle = horrorOverride ? '#ff0000' : nyuwa.color;
+        ctx.beginPath();
+        ctx.moveTo(cx + 18, cy - 14);
+        ctx.lineTo(cx + 24, cy - 32);
+        ctx.lineTo(cx + 6, cy - 22);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        // Inner Right Ear
+        ctx.fillStyle = horrorOverride ? '#000000' : '#ffb6d5';
+        ctx.beginPath();
+        ctx.moveTo(cx + 18, cy - 16);
+        ctx.lineTo(cx + 21, cy - 27);
+        ctx.lineTo(cx + 9, cy - 21);
+        ctx.closePath(); ctx.fill();
+
+      } else if (nyuwa.headGene === 'horns') {
+        ctx.fillStyle = horrorOverride ? '#330000' : '#fce2db';
+        // Left horn
+        ctx.beginPath();
+        ctx.moveTo(cx - 14, cy - 18);
+        ctx.quadraticCurveTo(cx - 24, cy - 32, cx - 18, cy - 34);
+        ctx.quadraticCurveTo(cx - 10, cy - 24, cx - 4, cy - 20);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        // Right horn
+        ctx.beginPath();
+        ctx.moveTo(cx + 14, cy - 18);
+        ctx.quadraticCurveTo(cx + 24, cy - 32, cx + 18, cy - 34);
+        ctx.quadraticCurveTo(cx + 10, cy - 24, cx + 4, cy - 20);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+      } else if (nyuwa.headGene === 'sprout') {
+        // Little plant leaf stem
+        ctx.strokeStyle = horrorOverride ? '#000000' : '#52b788';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 20);
+        ctx.quadraticCurveTo(cx - 4, cy - 32, cx + 2, cy - 34);
+        ctx.stroke();
+        // Sprout leaves
+        ctx.fillStyle = horrorOverride ? '#220000' : '#74c69d';
+        ctx.strokeStyle = horrorOverride ? '#000000' : 'rgba(255, 255, 255, 0.9)';
+        ctx.lineWidth = 2;
+        // Leaf 1
+        ctx.beginPath();
+        ctx.ellipse(cx + 6, cy - 35, 6, 3, Math.PI / 6, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+        // Leaf 2
+        ctx.beginPath();
+        ctx.ellipse(cx - 4, cy - 33, 5, 3, -Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+      }
+
+      // 4. Draw Face Expression
+      ctx.fillStyle = '#5c4266'; 
+      let eyeY = cy - 2;
+      let leftEyeX = cx - 10;
+      let rightEyeX = cx + 10;
+
+      if (horrorOverride) {
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(leftEyeX - 1, eyeY, 8, 0, Math.PI * 2); // Big hollow black pool
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(rightEyeX + 1, eyeY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hollow sad mouth
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, eyeY + 8, 4.5, 0, Math.PI * 2);
+        ctx.stroke();
+      } 
+      else if (nyuwa.isDizzy) {
+        ctx.strokeStyle = '#5c4266';
+        ctx.lineWidth = 2;
+        
+        // Spin swirl eyes
+        ctx.save();
+        ctx.translate(leftEyeX, eyeY);
+        ctx.rotate(frameCount * 0.15);
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(rightEyeX, eyeY);
+        ctx.rotate(-frameCount * 0.15);
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.restore();
+
+        // Big silly cheeks
+        ctx.fillStyle = 'rgba(255, 100, 150, 0.6)';
+        ctx.beginPath(); ctx.arc(leftEyeX - 4, eyeY + 5, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(rightEyeX + 4, eyeY + 5, 5, 0, Math.PI*2); ctx.fill();
+
+        // Dizzy smiling mouth
+        ctx.strokeStyle = '#5c4266';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, eyeY + 3, 5, 0, Math.PI);
+        ctx.stroke();
+      } 
+      else if (nyuwa.faceGene === 'kawaii') {
+        // Cute smiling arc eyes
+        ctx.strokeStyle = '#5c4266';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(leftEyeX, eyeY, 4, Math.PI, 0, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(rightEyeX, eyeY, 4, Math.PI, 0, false);
+        ctx.stroke();
+        // Rosy Cheeks
+        ctx.fillStyle = 'rgba(255, 100, 150, 0.4)';
+        ctx.beginPath(); ctx.arc(leftEyeX - 4, eyeY + 5, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(rightEyeX + 4, eyeY + 5, 4, 0, Math.PI*2); ctx.fill();
+        // Cute mouth
+        ctx.strokeStyle = '#5c4266';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, eyeY + 4, 3, 0, Math.PI);
+        ctx.stroke();
+
+      } else if (nyuwa.faceGene === 'cool') {
+        ctx.fillStyle = '#5c4266';
+        ctx.fillRect(leftEyeX - 4, eyeY - 2, 8, 3);
+        ctx.fillRect(rightEyeX - 4, eyeY - 2, 8, 3);
+        ctx.fillRect(cx - 3, eyeY + 5, 6, 2);
+
+      } else if (nyuwa.faceGene === 'derp') {
+        // Crazy goofy eyes
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#5c4266';
+        ctx.lineWidth = 1.5;
+        // Left
+        ctx.beginPath(); ctx.arc(leftEyeX, eyeY, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#5c4266';
+        ctx.beginPath(); ctx.arc(leftEyeX + 1, eyeY - 1, 2, 0, Math.PI*2); ctx.fill();
+        // Right
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(rightEyeX, eyeY, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#5c4266';
+        ctx.beginPath(); ctx.arc(rightEyeX - 2, eyeY + 1, 2, 0, Math.PI*2); ctx.fill();
+        // Open circle mouth
+        ctx.beginPath(); ctx.arc(cx, eyeY + 6, 3.5, 0, Math.PI*2); ctx.fill();
+
+      } else { // 'blank' expression
+        ctx.beginPath(); ctx.arc(leftEyeX, eyeY, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(rightEyeX, eyeY, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillRect(cx - 3, eyeY + 5, 6, 2);
+      }
+
+      // Add shivering visual effect if sick
+      if (nyuwa.isSick && !nyuwa.isDizzy) {
+        ctx.strokeStyle = '#a2d2ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 28, cy - 25);
+        ctx.lineTo(cx - 34, cy - 15);
+        ctx.moveTo(cx + 28, cy - 25);
+        ctx.lineTo(cx + 34, cy - 15);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // --- ANIMATION CONTROLLER ---
+    let renderAnimFrame = 0;
+    let renderInterval = null;
+
+    function startPlayRenderLoop() {
+      if (renderInterval) clearInterval(renderInterval);
+      renderInterval = setInterval(() => {
+        if (!state.currentNyuwa) return;
+        renderAnimFrame++;
+        
+        const p = state.currentNyuwa;
+
+        // Overdose Glitch Flash Timing (Occurs after 5 seconds of Dizziness)
+        if (p.isDizzy) {
+          const elapsed = Date.now() - p.dizzyStartTime;
+          if (elapsed > 5000) {
+            if (p.glitchFlashFrames > 0) {
+              p.glitchFlashFrames--;
+              if (p.glitchFlashFrames === 0) {
+                p.glitchFlashType = 'none';
+              }
+            } else {
+              // Very low chance (~1.5% chance per 80ms frame) to trigger a sudden split-second visual glitch
+              if (Math.random() < 0.015) {
+                p.glitchFlashFrames = Math.floor(Math.random() * 2) + 2; // Lasts for 2 to 3 frames
+                p.glitchFlashType = Math.random() < 0.5 ? 'saturated' : 'redblack';
+              }
+            }
+          }
+        }
+
+        drawNyuwaOnCanvas('play-mascot-canvas', p, renderAnimFrame);
+
+        // Apply temporary visual classes to container during glitch frames
+        const envBg = document.getElementById('play-environment-bg');
+        if (p.isDizzy && p.glitchFlashFrames > 0) {
+          if (p.glitchFlashType === 'saturated') {
+            envBg.classList.add('flash-saturated');
+            envBg.classList.remove('flash-redblack');
+          } else if (p.glitchFlashType === 'redblack') {
+            envBg.classList.add('flash-redblack');
+            envBg.classList.remove('flash-saturated');
+          }
+        } else {
+          envBg.classList.remove('flash-saturated', 'flash-redblack');
+        }
+
+      }, 80);
+    }
+
+    function stopPlayRenderLoop() {
+      if (renderInterval) {
+        clearInterval(renderInterval);
+        renderInterval = null;
+      }
+    }
+
+    // --- HUD REALTIME UPDATE ---
+    function updateGameHeaderHUD() {
+      const p = state.currentNyuwa;
+      if (!p) return;
+
+      // Timer calculation (Min:Sec)
+      let displaySec = p.lifetimeSec;
+      if (displaySec < 0) displaySec = 0;
+      
+      const m = Math.floor(displaySec / 60);
+      const s = displaySec % 60;
+      const formattedTime = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      
+      const timerElement = document.getElementById('header-timer');
+      timerElement.innerText = formattedTime;
+
+      // Subtle pulse and clean status-switching colors instead of harsh blinding red
+      if (p.lifetimeSec <= 30) {
+        timerElement.className = "text-white bg-red-400 animate-pulse px-2 py-0.5 rounded-md font-mono font-bold text-[11px] shadow-sm";
+      } else {
+        timerElement.className = "text-white bg-gray-500 px-2 py-0.5 rounded-md font-mono font-bold text-[11px] shadow-sm";
+      }
+
+      // Update fluid water bar
+      const waterBar = document.getElementById('water-bar');
+      waterBar.style.width = `${p.water}%`;
+      if (p.water < 25) {
+        waterBar.classList.remove('bg-blue-400');
+        waterBar.classList.add('bg-red-500', 'animate-pulse');
+      } else {
+        waterBar.classList.add('bg-blue-400');
+        waterBar.classList.remove('bg-red-500', 'animate-pulse');
+      }
+
+      // Toggle sickness badge with urgent countdown text
+      const sickBadge = document.getElementById('disease-badge');
+      if (p.isSick && !p.isDizzy) {
+        sickBadge.classList.remove('hidden');
+      } else {
+        sickBadge.classList.add('hidden');
+      }
+
+      const envBg = document.getElementById('play-environment-bg');
+      if (p.isDizzy) {
+        envBg.className = "relative flex-1 w-full bg-gradient-to-b from-[#fffbf8] to-[#fff3fa] rounded-2xl border-4 border-purple-400 shadow-inner overflow-hidden flex flex-col items-center justify-end pb-4";
+      } else {
+        envBg.className = "relative flex-1 w-full bg-gradient-to-b from-[#fffbf8] to-[#fff3fa] rounded-2xl border-4 border-[#ffedf6] shadow-inner overflow-hidden flex flex-col items-center justify-end pb-4";
+      }
+    }
+
+    // --- POPUP REACTION NOTIFICATION (EMOJI BLAST) ---
+    function triggerFloatEmoji(emoji) {
+      const bubble = document.getElementById('floating-reaction');
+      bubble.innerText = emoji;
+      bubble.style.opacity = '1';
+      bubble.style.transform = 'scale(1.2) translateY(-40px)';
+      
+      setTimeout(() => {
+        bubble.style.opacity = '0';
+        bubble.style.transform = 'scale(0.5) translateY(0px)';
+      }, 800);
+    }
+
+    // Trigger visual text balloon message
+    function showFeedbackMessage(text) {
+      const feedback = document.getElementById('feedback-bubble');
+      feedback.innerText = text;
+      feedback.style.opacity = '1';
+      
+      setTimeout(() => {
+        feedback.style.opacity = '0';
+      }, 2500);
+    }
+
+    // --- MENU ACTIONS ---
+    function menuAction(type) {
+      const p = state.currentNyuwa;
+      if (!p) return;
+      playBeep(450, 'sine', 0.08, 0.04);
+
+      // OVERDOSE GLITCH OVERRIDE
+      if (p.isDizzy && type !== 'kill') {
+        const glitched = getGlitchText();
+        triggerFloatEmoji('🌀');
+        showFeedbackMessage(glitched);
+        playBeep(120, 'square', 0.25, 0.1);
+        return;
+      }
+
+      if (type === 'status') {
+        const msg = determineStatusMessage(p);
+        document.getElementById('status-message').innerText = msg;
+        openModal('modal-status');
+
+      } else if (type === 'touch') {
+        // Last moments affection override (30 seconds or less)
+        if (p.lifetimeSec <= 30) {
+          p.stress = Math.max(0, p.stress - 20); // Deep stress relief
+          triggerFloatEmoji('🥺');
+          showFeedbackMessage(`${p.name}は あなたのてを うけいれた…`);
+          playBeep(520, 'sine', 0.15, 0.05);
+          return;
+        }
+
+        // Track touch timestamp to detect harassment/harsh over-touching
+        const now = Date.now();
+        p.touchHistory.push(now);
+        
+        // Count interactions in the last 10 seconds
+        const interactionsCount = p.touchHistory.filter(t => now - t < 10000).length;
+
+        // OVER-TOUCHING / HARASSMENT LOGIC
+        if (interactionsCount >= 4) {
+          p.stress = Math.min(100, p.stress + 30); // Huge stress penalty!
+          triggerFloatEmoji('👿');
+          showFeedbackMessage(`${p.name}は さわりすぎを とても嫌がっています！`);
+          playBeep(250, 'sawtooth', 0.2, 0.08);
+          return;
+        }
+
+        // REGULAR INTERACTION LOGIC
+        if (p.personality === 'cool') {
+          p.stress = Math.min(100, p.stress + 15);
+          triggerFloatEmoji('💢');
+          showFeedbackMessage(`${p.name}は あまり さわられたくない ようだ…`);
+          playBeep(320, 'square', 0.1, 0.05);
+        } else {
+          p.stress = Math.max(0, p.stress - 15);
+          // ★ FIXED: Removed p.lifetimeSec += 2 (Petting no longer increases physical life, keeping natural survival strictly 2 minutes!)
+          triggerFloatEmoji('❤️');
+          showFeedbackMessage(`${p.name}は よろこんで すりすり している！`);
+          playBeep(520, 'sine', 0.1, 0.05);
+        }
+
+      } else if (type === 'food') {
+        openModal('modal-food');
+
+      } else if (type === 'decor') {
+        renderDecorInventory();
+        openModal('modal-decor');
+
+      } else if (type === 'items') {
+        renderConsumablesInventory();
+        openModal('modal-items');
+
+      } else if (type === 'kill') {
+        triggerKillSequence();
+      }
+    }
+
+    // --- DECIDE DETAILED STATUS MESSAGES ---
+    function determineStatusMessage(p) {
+      // OVERDOSE GLITCH OVERRIDE
+      if (p.isDizzy) {
+        return getGlitchText();
+      }
+
+      const hasExtender = state.inventory.candy5 > 0 || state.inventory.candy10 > 0 || state.inventory.candy30 > 0;
+      
+      if (p.lifetimeSec <= 30) {
+        if (!hasExtender) {
+          return `${p.name}は ほほえみながら こっちを みている…`;
+        } else {
+          return `${p.name}は くるしそうに こっちを みている…`;
+        }
+      }
+
+      if (p.isSick) {
+        return `${p.name}は ねつがあって ぐったりしている！${p.sickTimer}秒以内に おくすりを あげなきゃしんじゃう！`;
+      }
+
+      if (p.water < 30) {
+        return `${p.name}は のどがカラカラのようだ！おみずをあげて！`;
+      }
+
+      if (p.hunger > 70) {
+        return `${p.name}はお腹が空いて ぷんぷん怒っている！`;
+      }
+
+      if (p.stress > 65) {
+        if (p.touchHistory.length >= 3) {
+          return `${p.name}は さわられすぎて お怒りのようだ…！すこし休ませよう。`;
+        }
+        return `${p.name}は ストレスがたまっている。そっとしておこう。`;
+      }
+
+      if (p.hunger < 15) {
+        return `${p.name}はおなかいっぱいで まんぞくだ！`;
+      }
+
+      // Default random comments
+      const randoms = [
+        `${p.name}は とっても げんきだ！`,
+        `${p.name}は こっちを じっと みている。`,
+        `${p.name}は おだやかに すりすりしている。`,
+        `${p.name}は ぼーっとしている。`
+      ];
+      return randoms[Math.floor(Math.random() * randoms.length)];
+    }
+
+    // --- FEEDING MECHANICS ---
+    function feedMascot(foodType) {
+      const p = state.currentNyuwa;
+      if (!p) return;
+      closeModal('modal-food');
+
+      // Dizzy protection
+      if (p.isDizzy) {
+        showFeedbackMessage(getGlitchText());
+        return;
+      }
+
+      // お水のあげすぎ（破裂即死）のチェック
+      if (foodType === 'water') {
+        if (p.water >= 95) {
+          triggerDeath("お水の あげすぎで おなかがさけてしまった", true); 
+          return;
+        }
+        p.water = Math.min(100, p.water + 35);
+        triggerFloatEmoji('💧');
+        showFeedbackMessage(`${p.name}は うるおった！`);
+        playBeep(480, 'sine', 0.12, 0.05);
+        saveState();
+        return;
+      }
+
+      // Random likes/dislikes
+      if (!p.favoriteFood) {
+        p.favoriteFood = Math.random() < 0.5 ? 'sweet' : 'salty';
+        p.hatedFood = p.favoriteFood === 'sweet' ? 'salty' : 'sweet';
+      }
+
+      // Overeat Burst Check
+      if (p.hunger <= 10 && (foodType === 'sweet' || foodType === 'salty')) {
+        triggerDeath("ごはんの あげすぎで おなかがさけてしまった", true);
+        return;
+      }
+
+      // Eating mechanics based on personality
+      if (p.personality === 'cool' && Math.random() < 0.35) {
+        triggerFloatEmoji('💤');
+        showFeedbackMessage(`${p.name}は そっぽを向いて 食べるのをこばんだ。`);
+        playBeep(220, 'square', 0.15, 0.05);
+        return;
+      }
+
+      if (foodType === p.favoriteFood) {
+        p.hunger = Math.max(0, p.hunger - 30);
+        p.stress = Math.max(0, p.stress - 20);
+        triggerFloatEmoji('✨');
+        showFeedbackMessage(`${p.name}は このごはんが だいすき！ うれしそうだ！`);
+        playBeep(650, 'sine', 0.1, 0.05);
+      } else if (foodType === p.hatedFood) {
+        p.hunger = Math.max(0, p.hunger - 10);
+        p.stress = Math.min(100, p.stress + 35); // Big stress hike
+        triggerFloatEmoji('🤢');
+        showFeedbackMessage(`${p.name}は このごはんが 大嫌いらしい…！`);
+        playBeep(180, 'sawtooth', 0.2, 0.06);
+      }
+
+      saveState();
+    }
+
+    // --- ITEMS ACTIONS (INVENTORY MANAGEMENT) ---
+    function renderConsumablesInventory() {
+      const container = document.getElementById('consumables-inventory');
+      container.innerHTML = '';
+
+      const itemsDef = [
+        { key: 'candy5', name: 'あめ玉 (5分寿命延)', icon: '🍬', desc: '寿命を5分延長します' },
+        { key: 'candy10', name: 'パステルマカロン (10分寿命延)', icon: '🧁', desc: '寿命を10分延長します' },
+        { key: 'candy30', name: '夢色パフェ (30分寿命延)', icon: '🍨', desc: '寿命を30分延長します' },
+        { key: 'medicine', name: 'おくすり', icon: '💊', desc: 'おくすり（1回目は80%、2回目は90%で治ります）' },
+        { key: 'loveItem', name: 'あいのリボン', icon: '🎀', desc: 'ストレスをゼロにします' }
+      ];
+
+      let hasAny = false;
+      itemsDef.forEach(item => {
+        const qty = state.inventory[item.key] || 0;
+        if (qty > 0) {
+          hasAny = true;
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center bg-pink-50/50 p-2 rounded-xl border border-pink-100";
+          row.innerHTML = `
+            <div class="text-left">
+              <div class="text-xs font-bold text-gray-700">${item.icon} ${item.name} (${qty}こ)</div>
+              <div class="text-[9px] text-gray-400">${item.desc}</div>
+            </div>
+            <button onclick="useItem('${item.key}')" class="px-2.5 py-1 bg-pink-200 hover:bg-pink-300 text-pink-700 rounded-lg text-[10px] font-bold">
+              つかう
+            </button>
+          `;
+          container.appendChild(row);
+        }
+      });
+
+      if (!hasAny) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">もっている アイテムはありません</p>`;
+      }
+    }
+
+    function useItem(itemKey) {
+      const p = state.currentNyuwa;
+      if (!p) return;
+
+      if (!state.inventory[itemKey] || state.inventory[itemKey] <= 0) return;
+      
+      closeModal('modal-items');
+
+      // Dizzy glitch check
+      if (p.isDizzy && itemKey !== 'kill') {
+        showFeedbackMessage(getGlitchText());
+        return;
+      }
+
+      state.inventory[itemKey]--;
+
+      if (itemKey === 'candy5') {
+        p.lifetimeSec += 5 * 60;
+        playCureSfx();
+        triggerFloatEmoji('💫');
+        showFeedbackMessage(`${p.name}の 寿命が5分のびた！`);
+      } else if (itemKey === 'candy10') {
+        p.lifetimeSec += 10 * 60;
+        playCureSfx();
+        triggerFloatEmoji('🌟');
+        showFeedbackMessage(`${p.name}の 寿命が10分のびた！`);
+      } else if (itemKey === 'candy30') {
+        p.lifetimeSec += 30 * 60;
+        playCureSfx();
+        triggerFloatEmoji('👑');
+        showFeedbackMessage(`${p.name}の 寿命が30分のびた！`);
+      } else if (itemKey === 'medicine') {
+        const now = Date.now();
+        p.medicineTimestamps.push(now);
+        // Overdose check
+        p.medicineTimestamps = p.medicineTimestamps.filter(t => now - t < 30000);
+
+        if (p.medicineTimestamps.length >= 3) {
+          // TRIGGER OVERDOSE DIZZY GLITCH (おくすりあげすぎバグ)
+          p.isDizzy = true;
+          p.isSick = false; 
+          p.stress = 50;    
+          p.dizzyStartTime = Date.now(); 
+          p.glitchFlashFrames = 0;
+          p.glitchFlashType = 'none';
+          
+          playGlitchSfx();
+          triggerFloatEmoji('🌀');
+          showFeedbackMessage("あ縺ゑｽ｢縺ゑｽ｢縺ゑｽ｢縺ゑｽ｢...");
+
+          // 10 Seconds silent countdown
+          setTimeout(() => {
+            if (state.currentNyuwa === p || (state.currentNyuwa == null && p.deathReason === null)) {
+              triggerDeath("おくすりのあげすぎ", true);
+            }
+          }, 10000);
+
+          saveState();
+          return;
+        }
+
+        // 元気な時（病気ではない状態）にお薬をあげた場合の処理
+        if (!p.isSick) {
+          playBeep(350, 'sine', 0.1, 0.05);
+          triggerFloatEmoji('❓');
+          showFeedbackMessage("なにもおこらなかった！");
+          saveState();
+          return;
+        }
+
+        // SICKNESS REMEDY SYSTEM (1回目80% / 2回目90% 治る)
+        p.medicineAttempts++;
+        let isHealed = false;
+
+        if (p.medicineAttempts === 1) {
+          isHealed = Math.random() < 0.80; // 80% Success
+        } else if (p.medicineAttempts === 2) {
+          isHealed = Math.random() < 0.90; // 90% Success
+        } else {
+          isHealed = true; // 3rd try is always successful
+        }
+
+        if (isHealed) {
+          p.isSick = false;
+          p.sickTimer = 15; // Reset sickness countdown timer
+          p.medicineAttempts = 0;
+          playCureSfx();
+          triggerFloatEmoji('🏥');
+
+          // 50% chance to become permanently immune to sickness
+          if (Math.random() < 0.5) {
+            p.canGetSick = false;
+            showFeedbackMessage(`${p.name}の 病気が治った！もう絶対に病気にならない頑丈な体になった！`);
+          } else {
+            showFeedbackMessage(`${p.name}の 病気がなおった！`);
+          }
+        } else {
+          // Failed try
+          playBeep(220, 'square', 0.2, 0.08);
+          triggerFloatEmoji('❓');
+          showFeedbackMessage(`おくすりが 効かなかったみたい…！もう一度お薬をあげよう！`);
+        }
+      } else if (itemKey === 'loveItem') {
+        p.stress = 0;
+        playCureSfx();
+        triggerFloatEmoji('💖');
+        showFeedbackMessage(`${p.name}は 愛情につつまれ、おだやかになった！`);
+      }
+
+      saveState();
+    }
+
+    // --- DECOR / FURNITURE ARRANGEMENT ---
+    const DECOR_ASSETS = {
+      carpet_pink: { emoji: '🌸', name: 'さくらラグ', html: '<div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-6 bg-pink-300/40 rounded-full border border-pink-400/40 z-0"></div>' },
+      star_lamp: { emoji: '⭐', name: '星 of ランプ', html: '<div class="absolute top-4 right-6 text-3xl animate-pulse z-0">⭐</div>' },
+      mystic_orb: { emoji: '🔮', name: '怪しい水晶', html: '<div class="absolute bottom-3 left-4 text-2xl z-0">🔮</div>' },
+      creepy_doll: { emoji: '🧸', name: '呪いのドール', html: '<div class="absolute bottom-3 right-4 text-2xl z-0 animate-bounce">🧸</div>' }
+    };
+
+    function renderDecorInventory() {
+      const container = document.getElementById('decor-inventory');
+      container.innerHTML = '';
+
+      let hasAny = false;
+      Object.keys(DECOR_ASSETS).forEach(key => {
+        const hasPurchased = state.inventory[key];
+        if (hasPurchased) {
+          hasAny = true;
+          const isPlaced = state.currentDecor === key;
+          const btn = document.createElement('button');
+          btn.className = `p-2 border rounded-xl flex flex-col items-center gap-1 transition-all ${isPlaced ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-50 border-gray-200'}`;
+          btn.onclick = () => togglePlaceDecor(key);
+          btn.innerHTML = `
+            <span class="text-2xl">${DECOR_ASSETS[key].emoji}</span>
+            <span class="text-[9px] font-bold text-gray-600">${DECOR_ASSETS[key].name}</span>
+            <span class="text-[8px] text-indigo-500 font-bold">${isPlaced ? 'おいてる' : 'おく'}</span>
+          `;
+          container.appendChild(btn);
+        }
+      });
+
+      if (!hasAny) {
+        container.innerHTML = `<div class="col-span-3 text-xs text-gray-400 text-center py-4">もようがえアイテムがありません。おみせでかってね！</div>`;
+      }
+    }
+
+    function togglePlaceDecor(key) {
+      if (state.currentDecor === key) {
+        state.currentDecor = null; // Unequip
+      } else {
+        state.currentDecor = key; // Equip
+      }
+      playBeep(400, 'sine', 0.1, 0.05);
+      loadDecorLayer();
+      saveState();
+      renderDecorInventory();
+    }
+
+    function loadDecorLayer() {
+      const layer = document.getElementById('room-decor-layer');
+      layer.innerHTML = '';
+      if (state.currentDecor && DECOR_ASSETS[state.currentDecor]) {
+        layer.innerHTML = DECOR_ASSETS[state.currentDecor].html;
+      }
+    }
+
+    // --- SEVERE KILL MECHANISM ---
+    function triggerKillSequence() {
+      const p = state.currentNyuwa;
+      if (!p) return;
+
+      const confirmModal = document.getElementById('modal-confirm');
+      const msg = document.getElementById('confirm-message');
+      const yesBtn = document.getElementById('confirm-yes-btn');
+      
+      msg.innerHTML = `<span class="text-red-600 font-bold">【殺害警告】</span><br>本当に ${p.name} をころしますか？`;
+      document.getElementById('confirm-icon').innerText = '💀';
+      
+      // Step 1 confirm
+      yesBtn.onclick = () => {
+        playBeep(180, 'sawtooth', 0.2, 0.1);
+        // Step 2 extreme confirm
+        msg.innerHTML = `<span class="text-red-700 font-mono font-bold">【本当にいいのですか？】</span><br>ほんとうのほんとうに、この手で葬り去ってしまうのですか？`;
+        yesBtn.onclick = () => {
+          closeModal('modal-confirm');
+          triggerDeath("プレイヤーの手でころされました", true); 
+        };
+      };
+
+      openModal('modal-confirm');
+    }
+
+    // --- DEATH PROCESSING & REWARDS ---
+    function triggerDeath(reason, isHorror = false) {
+      stopPlayRenderLoop();
+      if (gameTicker) {
+        clearInterval(gameTicker);
+        gameTicker = null;
+      }
+
+      const p = state.currentNyuwa;
+      if (!p) return;
+
+      // Make the entire screen go completely white smoothly
+      const whiteout = document.getElementById('whiteout-overlay');
+      whiteout.classList.remove('pointer-events-none');
+      whiteout.style.opacity = '1';
+
+      // Gentle departure chime
+      playBeep(520, 'sine', 0.6, 0.06);
+
+      // Perform background state calculations and screen setup during the whiteout
+      setTimeout(() => {
+        p.deathReason = reason;
+        p.horrorDeath = isHorror;
+
+        // Calculate lifetime reward multipliers
+        let rewardHearts = 0;
+        let rewardCoins = 0;
+        
+        // Compute minutes survived
+        const minutesLived = Math.max(1, Math.floor(p.timeSurvivedSec / 60));
+
+        if (!isHorror) {
+          // Safe normal death gets currencies
+          rewardHearts = Math.min(100, minutesLived);
+          rewardCoins = Math.min(100000, minutesLived * 1000);
+          
+          state.hearts += rewardHearts;
+          state.coins += rewardCoins;
+        }
+
+        // Add to Cemetery registry
+        const graveRecord = {
+          id: Date.now(),
+          name: p.name,
+          headGene: p.headGene,
+          bodyGene: p.bodyGene,
+          faceGene: p.faceGene,
+          color: p.color,
+          timeSurvivedSec: p.timeSurvivedSec,
+          personality: p.personality,
+          deathReason: reason,
+          horrorDeath: isHorror,
+          favorite: false
+        };
+
+        state.graveyard.unshift(graveRecord);
+        trimGraveyard();
+
+        // Clear pet state
+        state.currentNyuwa = null;
+        saveState();
+
+        // Setup death scene panels
+        document.getElementById('game-header').classList.add('hidden');
+        document.getElementById('screen-play').classList.add('hidden');
+        document.getElementById('screen-death').classList.remove('hidden');
+
+        // Update purse on death screen
+        document.getElementById('death-purse-coins').innerText = state.coins;
+        document.getElementById('death-purse-hearts').innerText = state.hearts;
+
+        // Death visual configuration
+        const deathContainer = document.getElementById('screen-death');
+        const deathAnnounce = document.getElementById('death-announcement');
+        const deathDetail = document.getElementById('death-detail');
+        const deathNarration = document.getElementById('death-narration');
+        const rewardZone = document.getElementById('death-reward-zone');
+
+        deathDetail.innerText = `じゅみょう: ${Math.floor(graveRecord.timeSurvivedSec / 60)}ふん ${graveRecord.timeSurvivedSec % 60}びょう 生きた`;
+
+        if (isHorror) {
+          // --- HORROR DEMISE BRANCH ---
+          playDeathSfx(true); 
+          
+          // Apply horror class overlays
+          const gameContainer = document.getElementById('game-container');
+          gameContainer.classList.add('horror-glitch', 'border-red-600', 'bg-black');
+          
+          deathContainer.className = "w-full h-full flex flex-col items-center justify-between py-8 px-6 bg-black text-white horror-glitch";
+          deathAnnounce.className = "text-xl font-bold mt-2 font-mono text-red-600";
+          deathAnnounce.innerText = "ころしてしまいました";
+          
+          deathNarration.className = "text-red-500 font-mono font-bold leading-relaxed text-sm";
+          
+          let scaryText = "";
+          if (reason.includes("過干渉")) {
+            scaryText = "あなたの過干渉（かかんしょう）が、この子を追い詰めてしまったのですよ……<br>さわりすぎは、時に優しさではなく暴力になるのです。";
+          } else if (reason.includes("おなかがさけて")) {
+            scaryText = "ごはんやお水を過剰にあげすぎて、おなかが裂けてしまったのですね……<br>与えすぎるお世話が、この子を壊したのです。";
+          } else if (reason.includes("飢え死に")) {
+            scaryText = "ごはんをあげるのを忘れて、おなかがすきすぎて力尽きてしまったのですね……<br>放置されたにゅゎは、どれほど寂しく、ひもじかったことか。";
+          } else if (reason.includes("干からび")) {
+            scaryText = "お水をあげるのを忘れて、カラカラにしてしまったのですね……<br>のどの渇きに苦しみながら、にゅゎは消えてしまいました。";
+          } else if (reason.includes("ころされました")) {
+            scaryText = "あなたのその手で、直接いのちを奪ってしまったのですね……<br>ほんとうに、ほんとうに、恐ろしい人です。";
+          } else if (reason.includes("おくすりのあげすぎ")) {
+            scaryText = "あなたが短時間におくすりをたくさん（あげすぎ）にしてしまったせいで、にゅゎのちいさなからだにバグがおきてしまったのですね……<br>笑顔のバグに包まれたまま、にゅゎは消えてしまいました。";
+          } else {
+            scaryText = "あなたの管理不足がにゅゎを死に追いやったのですよ……<br>暗闇のなか、ただ一人震えていました。";
+          }
+          
+          deathNarration.innerHTML = `【死因：${reason}】<br><br>${scaryText}`;
+          rewardZone.classList.add('hidden');
+
+          // STOP the screen shake after 1.5 seconds
+          setTimeout(() => {
+            deathContainer.classList.remove('horror-glitch');
+            gameContainer.classList.remove('horror-glitch');
+          }, 1500);
+
+        } else {
+          // --- GENTLE/NATURAL DEMISE BRANCH ---
+          playDeathSfx(false);
+          deathContainer.className = "w-full h-full flex flex-col items-center justify-between py-8 px-6 bg-[#1a1520] text-gray-100";
+          deathAnnounce.className = "text-xl font-bold mt-2 text-rose-300";
+          deathNarration.className = "text-gray-300 leading-relaxed text-sm";
+          
+          if (reason.includes("びょうき") || reason.includes("病気")) {
+            deathAnnounce.innerText = "病気に負けてしまいました";
+            deathNarration.innerHTML = `【原因：病死（びょうきし）】<br><br>${graveRecord.name}は一生懸命病気とたたかいましたが、おくすりが間に合いませんでした……。<br>看病お疲れ様でした。次はもっと元気な子に育ててあげましょうね。`;
+          } else {
+            deathAnnounce.innerText = "安らかに眠りました";
+            deathNarration.innerHTML = `【原因：老衰（じゅみょう）】<br><br>${graveRecord.name}は最期まであなたと過ごせて幸せでした。<br>次また飼うときも、たくさんの愛情を注いで天寿を全うさせてあげましょう。`;
+          }
+
+          rewardZone.innerHTML = `🎁 ほうしゅう獲得！<br>💖 ${rewardHearts} ハート / 🪙 ${rewardCoins} コイン`;
+          rewardZone.classList.remove('hidden');
+        }
+
+        // Draw ghost of Nyuwa on Death Canvas
+        drawDeadNyuwa(graveRecord);
+
+        // 3. Smoothly fade the whiteout overlay away so the player sees the aftermath
+        setTimeout(() => {
+          whiteout.style.opacity = '0';
+          setTimeout(() => {
+            whiteout.classList.add('pointer-events-none');
+          }, 1000);
+        }, 100);
+
+      }, 1200);
+    }
+
+    function trimGraveyard() {
+      if (state.graveyard.length <= 10) return;
+      
+      let favoritedOnes = state.graveyard.filter(g => g.favorite);
+      let regularOnes = state.graveyard.filter(g => !g.favorite);
+      
+      const allowedRegularsCount = Math.max(0, 10 - favoritedOnes.length);
+      const keptRegulars = regularOnes.slice(0, allowedRegularsCount);
+      
+      state.graveyard = [...favoritedOnes, ...keptRegulars];
+    }
+
+    function drawDeadNyuwa(graveRecord) {
+      const canvas = document.getElementById('death-mascot-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 10;
+
+      // Draw halo
+      if (!graveRecord.horrorDeath) {
+        ctx.strokeStyle = '#fff176';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 35, 14, 5, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.save();
+      
+      ctx.strokeStyle = graveRecord.horrorDeath ? '#ff0000' : 'rgba(255, 255, 255, 0.95)';
+      ctx.fillStyle = '#000000';
+      ctx.lineWidth = 3;
+
+      // Dead Body (Always egg shape in death)
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 22, 26, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+
+      // Ghost Tail
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, cy + 22);
+      ctx.quadraticCurveTo(cx, cy + 34, cx + 5, cy + 28);
+      ctx.quadraticCurveTo(cx - 5, cy + 24, cx - 10, cy + 22);
+      ctx.stroke();
+
+      // Dead Eyes (Crosses)
+      ctx.strokeStyle = graveRecord.horrorDeath ? '#ff0000' : '#eeddfa';
+      ctx.lineWidth = 2;
+      // Left eye X
+      ctx.beginPath();
+      ctx.moveTo(cx - 11, cy - 6); ctx.lineTo(cx - 5, cy);
+      ctx.moveTo(cx - 5, cy - 6); ctx.lineTo(cx - 11, cy);
+      ctx.stroke();
+      // Right eye X
+      ctx.beginPath();
+      ctx.moveTo(cx + 5, cy - 6); ctx.lineTo(cx + 11, cy);
+      ctx.moveTo(cx + 11, cy - 6); ctx.lineTo(cx + 5, cy);
+      ctx.stroke();
+
+      // Mouth
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy + 6);
+      ctx.quadraticCurveTo(cx, cy + 2, cx + 4, cy + 6);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function goBackToTitle() {
+      playBeep(350, 'sine', 0.1, 0.05);
+      
+      // Clear screen classes
+      document.getElementById('game-container').className = "relative w-full max-w-md h-[620px] bg-[#fffaf5] border-8 border-[#d8b4f8] rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between transition-colors duration-500";
+      
+      // Reset layout views
+      document.getElementById('screen-play').classList.add('hidden');
+      document.getElementById('screen-death').classList.add('hidden');
+      document.getElementById('screen-graveyard').classList.add('hidden');
+      document.getElementById('screen-shop').classList.add('hidden');
+      document.getElementById('game-header').classList.add('hidden');
+      
+      // Close all active overlay modals
+      closeModal('modal-naming');
+      closeModal('modal-status');
+      closeModal('modal-food');
+      closeModal('modal-decor');
+      closeModal('modal-items');
+      closeModal('modal-confirm');
+      closeModal('modal-grave-details');
+      
+      // Load and update title screens
+      loadSavedState();
+      document.getElementById('screen-title').classList.remove('hidden');
+      
+      // Render cute little dynamic pixel bouncing mascot on Title
+      drawTitleMascot();
+    }
+
+    // Cute animated bouncing generic character on Title
+    function drawTitleMascot() {
+      const mockPet = {
+        headGene: 'cat_ears',
+        bodyGene: 'slime',
+        faceGene: 'kawaii',
+        color: '#ffc6ff',
+        personality: 'warm',
+        isSick: false,
+        stress: 0
+      };
+      let fCount = 0;
+      if (window.titleMascotInterval) clearInterval(window.titleMascotInterval);
+      window.titleMascotInterval = setInterval(() => {
+        fCount++;
+        drawNyuwaOnCanvas('title-mascot-canvas', mockPet, fCount);
+      }, 100);
+    }
+
+    // --- CONTINUING EXISTING LIFE ---
+    function loadGame() {
+      if (!state.currentNyuwa) return;
+      playBeep(500, 'sine', 0.1, 0.05);
+
+      // Restore layout decor
+      loadDecorLayer();
+
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('screen-play').classList.remove('hidden');
+      document.getElementById('game-header').classList.remove('hidden');
+
+      // Start core timers
+      startLifeTicker();
+      startPlayRenderLoop();
+    }
+
+    // --- SAVE & CLOSE MODAL VIA HOME ---
+    function confirmGoHome() {
+      const confirmModal = document.getElementById('modal-confirm');
+      const msg = document.getElementById('confirm-message');
+      const yesBtn = document.getElementById('confirm-yes-btn');
+      
+      msg.innerHTML = `ホームへ戻りますか？<br><span class="text-indigo-500">じどうセーブされます。</span>`;
+      document.getElementById('confirm-icon').innerText = '🏠';
+      
+      yesBtn.onclick = () => {
+        closeModal('modal-confirm');
+        stopPlayRenderLoop();
+        if (gameTicker) {
+          clearInterval(gameTicker);
+          gameTicker = null;
+        }
+        saveState();
+        goBackToTitle();
+      };
+
+      openModal('modal-confirm');
+    }
+
+    // --- GRAVEYARD CONTROLLER ---
+    function openGraveyard() {
+      playBeep(450, 'sine', 0.1, 0.05);
+      graveyardHorrorTriggeredThisVisit = false;
+
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('screen-graveyard').classList.remove('hidden');
+      renderGraveyardList();
+    }
+
+    function renderGraveyardList() {
+      const container = document.getElementById('grave-slots');
+      container.innerHTML = '';
+
+      if (state.graveyard.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-gray-400">
+            <span class="text-4xl block mb-2">🪹</span>
+            まだ おはかはありません。
+          </div>`;
+        return;
+      }
+
+      state.graveyard.forEach((item, index) => {
+        const minLived = Math.floor(item.timeSurvivedSec / 60);
+        const secLived = item.timeSurvivedSec % 60;
+        const entry = document.createElement('div');
+        
+        // Horrific styling if negligent/murdered pet
+        if (item.horrorDeath) {
+          entry.className = "flex justify-between items-center p-3 rounded-xl bg-black border border-red-900 text-red-500 font-mono hover:bg-red-950/20 cursor-pointer relative overflow-hidden";
+          entry.innerHTML = `
+            <div class="absolute inset-y-0 right-16 w-12 bg-red-800/10 pointer-events-none mix-blend-color"></div>
+            <div onclick="inspectGrave(${item.id})" class="flex-1">
+              <div class="text-xs font-bold flex items-center gap-1">🩸 ${item.name} <span class="text-[9px] bg-red-900 text-white px-1 rounded">過失・キル</span></div>
+              <div class="text-[9px] text-red-700">生存: ${minLived}分${secLived}秒 / 死因: ${item.deathReason}</div>
+            </div>
+            <div class="flex gap-2 items-center z-10">
+              <button onclick="toggleGraveFavorite(${item.id})" class="text-base filter saturate-50 hover:scale-115 active:scale-95">
+                ${item.favorite ? '⭐' : '☆'}
+              </button>
+            </div>
+          `;
+        } else {
+          // Standard cute grave
+          entry.className = "flex justify-between items-center p-3 rounded-xl bg-purple-50/70 border border-purple-100 hover:bg-purple-100/50 cursor-pointer transition-all";
+          entry.innerHTML = `
+            <div onclick="inspectGrave(${item.id})" class="flex-1 text-left">
+              <div class="text-xs font-bold text-gray-700 flex items-center gap-1">🌸 ${item.name}</div>
+              <div class="text-[9px] text-gray-400">生存: ${minLived}分${secLived}秒 / 原因: ${item.deathReason.replace("天寿を全うしました", "じゅみょう")}</div>
+            </div>
+            <div class="flex gap-2 items-center">
+              <button onclick="toggleGraveFavorite(${item.id})" class="text-base text-yellow-500 hover:scale-115 active:scale-95">
+                ${item.favorite ? '★' : '☆'}
+              </button>
+            </div>
+          `;
+        }
+        container.appendChild(entry);
+      });
+    }
+
+    function toggleGraveFavorite(id) {
+      const grave = state.graveyard.find(g => g.id === id);
+      if (grave) {
+        grave.favorite = !grave.favorite;
+        playBeep(550, 'sine', 0.1, 0.05);
+        saveState();
+        renderGraveyardList();
+      }
+    }
+
+    function inspectGrave(id) {
+      const grave = state.graveyard.find(g => g.id === id);
+      if (!grave) return;
+
+      const card = document.getElementById('grave-modal-card');
+      const header = document.getElementById('grave-det-header');
+      const info = document.getElementById('grave-det-info');
+      const splatter = document.getElementById('grave-horror-splatter');
+
+      // --- CURSED PET INSPECTION LOGIC WITH ONE-TIME VISIT LIMIT ---
+      let shouldTriggerHorror = false;
+      if (grave.horrorDeath && !graveyardHorrorTriggeredThisVisit) {
+        if (Math.random() < 0.4) {
+          shouldTriggerHorror = true;
+          graveyardHorrorTriggeredThisVisit = true; // Lock triggers for remainder of this visit!
+        }
+      }
+
+      if (shouldTriggerHorror) {
+        playGlitchSfx();
+        card.className = "bg-black text-red-600 rounded-3xl border-4 border-red-700 w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3 text-center horror-glitch";
+        header.innerText = "呪われたにゅゎ";
+        header.className = "text-sm font-bold text-red-500 font-mono border-b border-red-900 pb-2";
+        splatter.classList.remove('hidden');
+        info.className = "text-left text-xs text-red-400 space-y-1 bg-red-950/40 p-2.5 rounded-xl border border-red-900 font-mono";
+        info.innerHTML = `
+          <div>なまえ: ${grave.name}</div>
+          <div>最期: くるしい いたい いたい</div>
+          <div>死因: ${grave.deathReason}</div>
+          <div>生存時間: ${Math.floor(grave.timeSurvivedSec / 60)}分 ${grave.timeSurvivedSec % 60}秒</div>
+          <div class="text-[10px] text-red-600 mt-2 text-center">どうしてたすけてくれなかったの</div>
+        `;
+
+        setTimeout(() => {
+          card.classList.remove('horror-glitch');
+        }, 1500);
+
+      } else {
+        // Normal state viewing
+        card.className = "bg-white rounded-3xl border-4 border-[#ffd6e8] w-full max-w-[280px] p-5 shadow-xl flex flex-col gap-3 text-center transition-all";
+        header.innerText = `🌸 ${grave.name} のきろく`;
+        header.className = "text-sm font-bold text-purple-600 border-b border-purple-100 pb-2";
+        splatter.classList.add('hidden');
+        info.className = "text-left text-xs text-gray-600 space-y-1 bg-gray-50 p-2.5 rounded-xl border border-gray-100";
+        
+        info.innerHTML = `
+          <div>なまえ: <span class="font-bold">${grave.name}</span></div>
+          <div>せいかく: ${grave.personality === 'warm' ? 'げんき・くいしんぼう' : 'そっけない・クール'}</div>
+          <div>いきた時間: ${Math.floor(grave.timeSurvivedSec / 60)}分 ${grave.timeSurvivedSec % 60}秒</div>
+          <div>死因: ${grave.deathReason.replace("天寿を全うしました", "じゅみょう（寿命）")}</div>
+        `;
+      }
+
+      playBeep(450, 'sine', 0.1, 0.05);
+      openModal('modal-grave-details');
+
+      const canvas = document.getElementById('grave-det-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw dead pet avatar (and override with horror crimson red/black hollow eyes if triggered)
+      drawNyuwaOnCanvas('grave-det-canvas', grave, 0, shouldTriggerHorror);
+    }
+
+    // --- SHOP CONTROLLER ---
+    let activeShopTab = 'consumable'; // or 'decor'
+
+    function openShop() {
+      playBeep(450, 'sine', 0.1, 0.05);
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('screen-shop').classList.remove('hidden');
+      renderShop();
+    }
+
+    function switchShopTab(tab) {
+      activeShopTab = tab;
+      playBeep(380, 'sine', 0.05, 0.04);
+      
+      const tConsumable = document.getElementById('tab-shop-consumable');
+      const tDecor = document.getElementById('tab-shop-decor');
+
+      if (tab === 'consumable') {
+        tConsumable.className = "flex-1 py-1.5 text-center border-b-2 border-indigo-500 text-indigo-600";
+        tDecor.className = "flex-1 py-1.5 text-center border-b-2 border-transparent text-gray-400";
+      } else {
+        tConsumable.className = "flex-1 py-1.5 text-center border-b-2 border-transparent text-gray-400";
+        tDecor.className = "flex-1 py-1.5 text-center border-b-2 border-indigo-500 text-indigo-600";
+      }
+
+      renderShop();
+    }
+
+    function renderShop() {
+      // Refresh purses
+      document.getElementById('shop-coins').innerText = state.coins;
+      document.getElementById('shop-hearts').innerText = state.hearts;
+
+      const container = document.getElementById('shop-items');
+      container.innerHTML = '';
+
+      if (activeShopTab === 'consumable') {
+        const shopConsumables = [
+          { key: 'candy5', name: 'あめ玉', icon: '🍬', cost: 1, currency: 'hearts', desc: '寿命+5分' },
+          { key: 'candy10', name: 'マカロン', icon: '🧁', cost: 2, currency: 'hearts', desc: '寿命+10分' },
+          { key: 'candy30', name: '夢パフェ', icon: '🍨', cost: 5, currency: 'hearts', desc: '寿命+30分' },
+          { key: 'medicine', name: 'おくすり', icon: '💊', cost: 3, currency: 'hearts', desc: '病気治療（1回目80%、2回目90%成功 / 永久免疫あり）' },
+          { key: 'loveItem', name: '愛リボン', icon: '🎀', cost: 4, currency: 'hearts', desc: 'ストレス解消' }
+        ];
+
+        shopConsumables.forEach(item => {
+          const card = document.createElement('div');
+          card.className = "bg-white p-3 border-2 border-purple-100 rounded-2xl flex flex-col items-center justify-between text-center gap-1 shadow-sm";
+          card.innerHTML = `
+            <div class="text-3xl">${item.icon}</div>
+            <div class="text-xs font-bold text-gray-700">${item.name}</div>
+            <div class="text-[9px] text-gray-400 leading-none">${item.desc}</div>
+            <button onclick="buyItem('${item.key}', ${item.cost}, '${item.currency}')" class="w-full mt-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl text-[10px] flex items-center justify-center gap-1">
+              <span>💖</span><span>${item.cost}</span>
+            </button>
+          `;
+          container.appendChild(card);
+        });
+
+      } else {
+        const shopDecors = [
+          { key: 'carpet_pink', name: 'さくらラグ', icon: '🌸', cost: 5000, currency: 'coins', desc: '床に敷けるラグ' },
+          { key: 'star_lamp', name: '星のランプ', icon: '⭐', cost: 10000, currency: 'coins', desc: '天井にかざる星' },
+          { key: 'mystic_orb', name: '水晶玉', icon: '🔮', cost: 25000, currency: 'coins', desc: '怪しく光るオブジェ' },
+          { key: 'creepy_doll', name: 'のろい人形', icon: '🧸', cost: 66666, currency: 'coins', desc: 'あやしい部屋に…' }
+        ];
+
+        shopDecors.forEach(item => {
+          const alreadyOwns = state.inventory[item.key] === true;
+          const card = document.createElement('div');
+          card.className = "bg-white p-3 border-2 border-purple-100 rounded-2xl flex flex-col items-center justify-between text-center gap-1 shadow-sm";
+          card.innerHTML = `
+            <div class="text-3xl">${item.icon}</div>
+            <div class="text-xs font-bold text-gray-700">${item.name}</div>
+            <div class="text-[9px] text-gray-400 leading-none">${item.desc}</div>
+            <button ${alreadyOwns ? 'disabled' : ''} onclick="buyItem('${item.key}', ${item.cost}, '${item.currency}', true)" class="w-full mt-2 py-1 bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-700 font-bold rounded-xl text-[10px] flex items-center justify-center gap-1">
+              <span>${alreadyOwns ? '所有済み' : `🪙 ${item.cost}`}</span>
+            </button>
+          `;
+          container.appendChild(card);
+        });
+      }
+    }
+
+    function buyItem(key, cost, currency, isDecor = false) {
+      if (currency === 'hearts') {
+        if (state.hearts < cost) {
+          playBeep(200, 'sawtooth', 0.15, 0.05);
+          alertModal("ハートが足りません！");
+          return;
+        }
+        state.hearts -= cost;
+        state.inventory[key] = (state.inventory[key] || 0) + 1;
+      } else {
+        if (state.coins < cost) {
+          playBeep(200, 'sawtooth', 0.15, 0.05);
+          alertModal("コインが足りません！");
+          return;
+        }
+        state.coins -= cost;
+        state.inventory[key] = true; // Furniture unlocks are boolean flags
+      }
+
+      playBeep(600, 'sine', 0.1, 0.05);
+      saveState();
+      renderShop();
+    }
+
+    // Custom non-alert popups to conform with environmental guidelines
+    function alertModal(msgText) {
+      const confirmModal = document.getElementById('modal-confirm');
+      const msg = document.getElementById('confirm-message');
+      const yesBtn = document.getElementById('confirm-yes-btn');
+      const noBtn = document.getElementById('confirm-no-btn');
+      
+      msg.innerText = msgText;
+      document.getElementById('confirm-icon').innerText = '💡';
+      
+      noBtn.classList.add('hidden'); // Hide second option
+      yesBtn.innerText = "了解";
+      
+      yesBtn.onclick = () => {
+        closeModal('modal-confirm');
+        noBtn.classList.remove('hidden'); // Restore layout
+        yesBtn.innerText = "はい";
+      };
+
+      openModal('modal-confirm');
+    }
+
+    // --- MODAL CONTROLLERS ---
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // --- ON INITIAL LAUNCH ---
+    window.onload = function() {
+      loadSavedState();
+      drawTitleMascot();
+    };
+  </script>
+</body>
+</html>
